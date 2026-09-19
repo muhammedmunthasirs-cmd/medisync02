@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediSync — Telemedicine & Clinical Records</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ==================== TOP NAVIGATION BAR ==================== -->
+  <header class="topbar">
+    <div class="brand">
+      <img src="medisync_logo.jpg" alt="MediSync" class="brand-logo-img" />
+      <div>
+        <h1 data-i18n="appName">MediSync</h1>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <!-- Language Picker (11 Languages) -->
+      <div class="lang-selector-wrap" title="Change System Language">
+        <span style="font-size: 1.1rem;">🌐</span>
+        <select id="lang-select" class="lang-select">
+          <option value="en">English</option>
+          <option value="hi">हिन्दी (Hindi)</option>
+          <option value="ta">தமிழ் (Tamil)</option>
+          <option value="te">తెలుగు (Telugu)</option>
+          <option value="ml">മലയാളം (Malayalam)</option>
+          <option value="gu">ગુજરાતી (Gujarati)</option>
+          <option value="mr">मराठी (Marathi)</option>
+          <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+          <option value="kn">ಕನ್ನಡ (Kannada)</option>
+          <option value="as">অসমীয়া (Assamese)</option>
+          <option value="bn">বাংলা (Bengali)</option>
+        </select>
+      </div>
+
+      <!-- In-app Notification Bell -->
+      <div id="notif-wrapper" class="hidden" style="position: relative;">
+        <button id="notif-bell-btn" class="notif-btn" title="Notifications">
+          🔔
+          <span id="notif-badge" class="notif-badge hidden">0</span>
+        </button>
+
+        <!-- Notification Drawer -->
+        <div id="notif-drawer" class="notif-drawer hidden">
+          <div class="notif-header">
+            <h4 data-i18n="notifications" style="font-size: 0.95rem;">Notifications</h4>
+            <button id="mark-read-btn" class="btn btn-ghost btn-small" data-i18n="markAllRead">Mark all read</button>
+          </div>
+          <div id="notif-list" class="notif-list">
+            <p class="muted" style="padding: 1rem; text-align: center;" data-i18n="noNotifications">No notifications yet</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Role & Profile -->
+      <div id="user-header-info" class="user-profile-badge hidden">
+        <span id="user-role-badge" class="user-role-pill">Patient</span>
+        <span id="user-name" style="font-weight: 600; font-size: 0.9rem;"></span>
+        <button id="logout-btn" class="btn btn-ghost btn-small" data-i18n="signOut">Sign out</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== AUTH SCREEN ==================== -->
+  <section id="auth-screen" class="auth-screen">
+    <div class="auth-container">
+      <div class="auth-card">
+
+        <div class="auth-header">
+          <div class="brand" style="justify-content: center; margin-bottom: 0.5rem;">
+            <img src="medisync_logo.jpg" alt="MediSync" class="brand-logo-img" style="height: 48px;" />
+            <h1>MediSync</h1>
+          </div>
+          <p class="tagline" data-i18n="tagline">One timeline. Every record. Seamless video care.</p>
+        </div>
+
+        <!-- Quick 1-Click Example Demo Accounts -->
+        <div class="demo-accounts-box">
+          <div class="demo-title">
+            <span>⚡</span>
+            <span data-i18n="quickDemoFill">Quick Demo Accounts (1-Click Fill)</span>
+          </div>
+          <div class="demo-cards-grid">
+            <button type="button" id="demo-doctor-btn" class="demo-card-btn">
+              <span class="demo-role" style="color: #0f766e;">🩺 Doctor</span>
+              <span class="demo-name">Dr. Rajesh Sharma</span>
+              <span class="demo-email">doctor@medisync.local</span>
+            </button>
+            <button type="button" id="demo-patient-btn" class="demo-card-btn">
+              <span class="demo-role" style="color: #0284c7;">👤 Patient</span>
+              <span class="demo-name">Asha Verma</span>
+              <span class="demo-email">patient@medisync.local</span>
+            </button>
+            <button type="button" id="demo-admin-btn" class="demo-card-btn">
+              <span class="demo-role" style="color: #6d28d9;">🛡️ Administrator</span>
+              <span class="demo-name">System Admin</span>
+              <span class="demo-email">admin@medisync.local</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Auth Tabs -->
+        <div class="auth-tabs">
+          <button class="auth-tab active" data-tab="login" data-i18n="signIn">Sign In</button>
+          <button class="auth-tab" data-tab="register-patient" data-i18n="createAccount">Patient Signup</button>
+          <button class="auth-tab" data-tab="register-doctor" data-i18n="doctorReg">Doctor Registration (UIDAI E-KYC)</button>
+        </div>
+
+        <!-- Form 1: Sign In -->
+        <form id="login-form" class="auth-form">
+          <label>
+            <span data-i18n="email">Email Address</span>
+            <input type="email" id="login-email" required autocomplete="username" placeholder="name@example.com" />
+          </label>
+          <label>
+            <span data-i18n="password">Password</span>
+            <input type="password" id="login-password" required autocomplete="current-password" />
+          </label>
+          <button type="submit" class="btn btn-primary" data-i18n="signIn">Sign In</button>
+        </form>
+
+        <!-- Form 2: Patient Registration -->
+        <form id="register-patient-form" class="auth-form hidden">
+          <div class="form-row-2">
+            <label>
+              <span data-i18n="fullName">Full Name</span>
+              <input type="text" id="reg-pat-name" required placeholder="e.g. Asha Verma" />
+            </label>
+            <label>
+              <span data-i18n="phone">Phone Number</span>
+              <input type="tel" id="reg-pat-phone" placeholder="+91 98765 43210" />
+            </label>
+          </div>
+          <div class="form-row-2">
+            <label>
+              <span data-i18n="email">Email Address</span>
+              <input type="email" id="reg-pat-email" required autocomplete="username" />
+            </label>
+            <label>
+              <span data-i18n="selectLanguage">Preferred Language</span>
+              <select id="reg-pat-lang">
+                <option value="English">English</option>
+                <option value="Hindi">हिन्दी (Hindi)</option>
+                <option value="Tamil">தமிழ் (Tamil)</option>
+                <option value="Telugu">తెలుగు (Telugu)</option>
+                <option value="Malayalam">മലയാളം (Malayalam)</option>
+                <option value="Gujarati">ગુજરાતી (Gujarati)</option>
+                <option value="Marathi">मराठी (Marathi)</option>
+                <option value="Punjabi">ਪੰਜਾਬੀ (Punjabi)</option>
+                <option value="Kannada">ಕನ್ನಡ (Kannada)</option>
+                <option value="Assamese">অসমীয়া (Assamese)</option>
+                <option value="Bengali">বাংলা (Bengali)</option>
+              </select>
+            </label>
+          </div>
+          <label>
+            <span data-i18n="password">Password (min 8 chars)</span>
+            <input type="password" id="reg-pat-password" required minlength="8" autocomplete="new-password" />
+          </label>
+          <button type="submit" class="btn btn-primary" data-i18n="createAccount">Create Patient Account</button>
+        </form>
+
+        <!-- Form 3: Doctor Registration with UIDAI E-KYC -->
+        <form id="register-doctor-form" class="auth-form hidden">
+          <div class="form-row-2">
+            <label>
+              <span>Doctor's Full Name (with Dr. prefix)</span>
+              <input type="text" id="reg-doc-name" required placeholder="Dr. Rajesh Sharma" />
+            </label>
+            <label>
+              <span data-i18n="phone">Mobile Number</span>
+              <input type="tel" id="reg-doc-phone" required placeholder="+91 98111 22334" />
+            </label>
+          </div>
+
+          <div class="form-row-2">
+            <label>
+              <span data-i18n="email">Official Email</span>
+              <input type="email" id="reg-doc-email" required />
+            </label>
+            <label>
+              <span data-i18n="password">Password (min 8 chars)</span>
+              <input type="password" id="reg-doc-password" required minlength="8" />
+            </label>
+          </div>
+
+          <div class="form-row-2">
+            <label>
+              <span>Medical Council Reg. Number</span>
+              <input type="text" id="reg-doc-regno" required placeholder="e.g. NMC-IND-88421" />
+            </label>
+            <label>
+              <span>State / National Medical Council</span>
+              <input type="text" id="reg-doc-council" required placeholder="e.g. National Medical Commission (NMC)" />
+            </label>
+          </div>
+
+          <div class="form-row-2">
+            <label>
+              <span>Specialization / Department</span>
+              <select id="reg-doc-spec">
+                <option value="General Medicine">General Medicine</option>
+                <option value="Pediatrics & Family Medicine">Pediatrics & Family Medicine</option>
+                <option value="Cardiology">Cardiology</option>
+                <option value="Dermatology">Dermatology</option>
+                <option value="Orthopedics & Joint Care">Orthopedics & Joint Care</option>
+                <option value="Neurology">Neurology</option>
+                <option value="Gynecology & Obstetrics">Gynecology & Obstetrics</option>
+                <option value="ENT Specialist">ENT Specialist</option>
+                <option value="Pulmonology">Pulmonology & Chest</option>
+              </select>
+            </label>
+            <label>
+              <span>Years of Clinical Experience</span>
+              <input type="number" id="reg-doc-exp" min="0" max="60" value="5" required />
+            </label>
+          </div>
+
+          <label>
+            <span>Clinic / Hospital Name</span>
+            <input type="text" id="reg-doc-clinic" placeholder="e.g. Apollo Health Hub / City Clinic" />
+          </label>
+
+          <!-- Languages Spoken (Multi-select) -->
+          <label>
+            <span>Languages Fluently Spoken (for Patient Matchmaking)</span>
+            <div class="languages-checkbox-grid" id="doc-languages-selection">
+              <label class="checkbox-label"><input type="checkbox" name="doc-lang" value="English" checked /> English</label>
+              <label class="checkbox-label"><input type="checkbox" name="doc-lang" value="Hindi" checked /> Hindi (हिन्दी)</label>
+              <label class="checkbox-label"><input type="checkbox" name="doc-lang" value="Tamil" /> Tamil (தமிழ்)</label>
+              <label class="checkbox-label"><input type="checkbox" name="doc-lang" value="Telugu" /> Telugu (తెలుగు)</label>
+              <label class="checkbox-label"><input type="checkbox" name="doc-lang" value="Malayalam" /> Malayalam (മലയാളം)</label>
+              <label class="checkbox-label"><input type="checkbox" name="doc-lang" value="Gujarati" /> Gujarati (ગુજરાતી)</label>
+              <label class="checkbox-label"><input type="checkbox" name="doc-lang" value="Marathi" /> Marathi (मराठी)</label>
+              <label class="checkbox-label"><input type="checkbox" name="doc-lang" value="Punjabi" /> Punjabi (ਪੰਜਾਬੀ)</label>
+              <label class="checkbox-label"><input type="checkbox" name="doc-lang" value="Kannada" /> Kannada (ಕನ್ನಡ)</label>
+              <label class="checkbox-label"><input type="checkbox" name="doc-lang" value="Assamese" /> Assamese (অসমীয়া)</label>
+              <label class="checkbox-label"><input type="checkbox" name="doc-lang" value="Bengali" /> Bengali (বাংলা)</label>
+            </div>
+          </label>
+
+          <!-- UIDAI E-KYC Aadhaar & Certificates -->
+          <div class="kyc-upload-box">
+            <h4 style="font-size: 0.9rem; margin-bottom: 0.5rem;">🇮🇳 UIDAI E-KYC & Medical Registration Verification</h4>
+            <div class="form-row-2" style="text-align: left; margin-top: 0.5rem;">
+              <label>
+                <span>Aadhaar Number (UIDAI)</span>
+                <input type="text" id="reg-doc-aadhaar" placeholder="XXXX-XXXX-1234" required />
+              </label>
+              <label>
+                <span>UIDAI XML / E-Aadhaar Certificate File</span>
+                <input type="file" id="reg-doc-aadhaar-file" accept=".pdf,.xml,.png,.jpg" />
+              </label>
+            </div>
+            <div style="text-align: left; margin-top: 0.5rem;">
+              <label>
+                <span>Medical Degree / Council Registration Certificate</span>
+                <input type="file" id="reg-doc-degree-file" accept=".pdf,.png,.jpg" />
+              </label>
+            </div>
+            <p class="muted" style="font-size: 0.78rem; margin-top: 0.5rem;">Admin will verify your UIDAI credentials and Council License before approving active teleconsultation status.</p>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Submit Doctor Application for Admin KYC Verification</button>
+        </form>
+
+        <p id="auth-error" class="error-text hidden"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== MAIN APPLICATION ==================== -->
+  <main id="main-app" class="main-app hidden">
+    <div class="app-container">
+
+      <!-- ================= PATIENT VIEW ================= -->
+      <section id="patient-view" class="hidden">
+
+        <!-- Embedded AI Clinical Guide (Available from the start) -->
+        <div id="patient-ai-hero" class="ai-hero-card">
+          <div class="ai-hero-header">
+            <div class="ai-hero-pill">
+              <span>🤖</span> <span data-i18n="aiCareGuideTitle">MediSync Clinical AI Guide</span>
+            </div>
+            <span class="ai-hero-status">● Live Medical Triage Ready</span>
+          </div>
+
+          <h2 data-i18n="aiGuideGreeting" style="font-size: 1.35rem; margin: 0.6rem 0 0.25rem; color: #0f172a;">
+            Welcome to MediSync! What health condition can we help you with?
+          </h2>
+          <p class="muted" data-i18n="aiGuideSubtitle" style="font-size: 0.88rem; margin-bottom: 1rem;">
+            Describe your disease or symptoms in English. We will accurately connect you to a specialized doctor who speaks your preferred language.
+          </p>
+
+          <div class="ai-hero-search-row">
+            <input type="text" id="ai-hero-search-input" placeholder="Type your symptoms or disease (e.g., chest pain, skin rash, asthma, knee pain, child fever)..." />
+            <button type="button" id="ai-hero-search-btn" class="btn btn-primary">
+              <span>🔍</span> <span data-i18n="searchDoctors">Find Matching Specialist</span>
+            </button>
+          </div>
+
+          <!-- Common Clinical Condition Quick Chips -->
+          <div class="ai-hero-chips" id="ai-hero-quick-chips">
+            <button type="button" class="hero-chip" data-disease="Severe chest pain and palpitations" data-spec="Cardiology">❤️ Heart & Chest</button>
+            <button type="button" class="hero-chip" data-disease="Severe skin rash and itching" data-spec="Dermatology">🧴 Skin & Allergy</button>
+            <button type="button" class="hero-chip" data-disease="Child fever, vomiting and cough" data-spec="Pediatrics">👶 Child Health</button>
+            <button type="button" class="hero-chip" data-disease="Knee joint arthritis and fracture pain" data-spec="Orthopedics">🦴 Bones & Joints</button>
+            <button type="button" class="hero-chip" data-disease="Asthma and breathing difficulty" data-spec="Pulmonology">🫁 Breathing & Lungs</button>
+            <button type="button" class="hero-chip" data-disease="Severe migraine, numbness and dizziness" data-spec="Neurology">🧠 Neurology</button>
+          </div>
+
+          <!-- Live AI Triage Match Result Card -->
+          <div id="ai-hero-result-card" class="ai-hero-match-box hidden"></div>
+        </div>
+
+        <!-- Patient Sub-navigation -->
+        <nav class="role-nav-tabs">
+          <button class="role-nav-btn active" data-ptab="matchmaker">
+            <span>🌐</span> <span data-i18n="findDoctorTitle">Find Doctor (Language Matchmaker)</span>
+          </button>
+          <button class="role-nav-btn" data-ptab="prescriptions">
+            <span>💊</span> <span data-i18n="myPrescriptions">My Prescriptions & Treatments</span>
+          </button>
+          <button class="role-nav-btn" data-ptab="doctor-requests">
+            <span>📑</span> <span data-i18n="requestedDocuments">Requested Documents from Doctor</span>
+          </button>
+        </nav>
+
+        <!-- Section 1: Matchmaker -->
+        <div id="patient-matchmaker-tab" class="patient-subpanel">
+          <div class="matchmaker-filter-card">
+            <h2 data-i18n="findDoctorTitle" style="font-size: 1.25rem; margin-bottom: 0.25rem;">Language-Based Doctor Matchmaker</h2>
+            <p class="muted" data-i18n="findDoctorSubtitle" style="margin-bottom: 1.25rem;">Connect with verified doctors who speak your preferred native language.</p>
+
+            <div class="form-row-2">
+              <label>
+                <span data-i18n="selectLanguage">Preferred Consultation Language</span>
+                <select id="match-lang-select">
+                  <option value="">Any Language</option>
+                  <option value="English">English</option>
+                  <option value="Hindi">हिन्दी (Hindi)</option>
+                  <option value="Tamil">தமிழ் (Tamil)</option>
+                  <option value="Telugu">తెలుగు (Telugu)</option>
+                  <option value="Malayalam">മലയാളം (Malayalam)</option>
+                  <option value="Gujarati">ગુજરાતી (Gujarati)</option>
+                  <option value="Marathi">मराठी (Marathi)</option>
+                  <option value="Punjabi">ਪੰਜਾਬੀ (Punjabi)</option>
+                  <option value="Kannada">ಕನ್ನಡ (Kannada)</option>
+                  <option value="Assamese">অসমীয়া (Assamese)</option>
+                  <option value="Bengali">বাংলা (Bengali)</option>
+                </select>
+              </label>
+
+              <label>
+                <span data-i18n="selectSpeciality">Speciality / Department</span>
+                <select id="match-spec-select">
+                  <option value="" data-i18n="allSpecialities">All Specialities</option>
+                  <option value="General">General Medicine</option>
+                  <option value="Pediatrics">Pediatrics & Family Health</option>
+                  <option value="Cardiology">Cardiology & Heart Care</option>
+                  <option value="Dermatology">Dermatology & Skin</option>
+                  <option value="Orthopedics">Orthopedics & Bone/Joints</option>
+                  <option value="Neurology">Neurology & Brain</option>
+                  <option value="Pulmonology">Pulmonology & Chest</option>
+                  <option value="Gynecology">Gynecology & Women's Health</option>
+                  <option value="ENT">ENT Specialist</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div id="matched-doctors-list" class="matchmaker-grid"></div>
+        </div>
+
+        <!-- Section 2: Patient Prescriptions -->
+        <div id="patient-prescriptions-tab" class="patient-subpanel hidden">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <div>
+              <h2 data-i18n="myPrescriptions">My Prescriptions & Treatments</h2>
+              <p class="muted">Digital prescriptions and lifestyle advice provided by consulting doctors.</p>
+            </div>
+          </div>
+          <div id="patient-rx-list"></div>
+        </div>
+
+        <!-- Section 3: Requested Documents from Doctor -->
+        <div id="patient-doctor-requests-tab" class="patient-subpanel hidden">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <div>
+              <h2 data-i18n="requestedDocuments">Requested Documents from Doctor</h2>
+              <p class="muted">Diagnostic scans, lab reports, and imaging requested by consulting doctors for review.</p>
+            </div>
+          </div>
+          <div id="patient-requests-list">
+            <!-- Populated with consultation document requests -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= DOCTOR VIEW ================= -->
+      <section id="doctor-view" class="hidden">
+        <!-- KYC Status Banner -->
+        <div id="doctor-kyc-banner" class="notice-banner pending">
+          <span style="font-size: 1.25rem;">🛡️</span>
+          <span id="doctor-kyc-banner-text" data-i18n="kycPendingBanner">Your UIDAI E-KYC verification is under review by the Administrator.</span>
+        </div>
+
+        <!-- Doctor Practice Availability Schedule Widget -->
+        <div class="availability-card">
+          <div class="availability-card-left">
+            <span style="font-size: 1.35rem;">🕒</span>
+            <div>
+              <div style="font-weight: 700; font-size: 0.95rem;" data-i18n="availability">Practice Availability & Working Hours</div>
+              <div id="doctor-schedule-display" class="muted" style="font-size: 0.85rem;">
+                Monday - Friday · 09:00 AM - 05:00 PM
+              </div>
+            </div>
+          </div>
+          <button type="button" id="btn-edit-doctor-schedule" class="btn btn-ghost btn-small" style="border: 1px solid var(--border-medium);">
+            <span>⚙️</span> <span data-i18n="saveAvailability">Edit Schedule</span>
+          </button>
+        </div>
+
+        <nav class="role-nav-tabs">
+          <button class="role-nav-btn active" data-dtab="queue">
+            <span>📅</span> <span data-i18n="patientQueue">Patient Queue & Consultations</span>
+          </button>
+          <button class="role-nav-btn" data-dtab="records">
+            <span>👥</span> <span>Patient Records & Charts</span>
+          </button>
+        </nav>
+
+        <!-- Doctor Section 1: Patient Consultations Queue -->
+        <div id="doc-queue-tab" class="doc-subpanel">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <div>
+              <h2 data-i18n="patientQueue">Consultation Queue</h2>
+              <p class="muted">Upcoming and in-progress telemedicine video consultations.</p>
+            </div>
+            <button id="doc-start-instant-call-btn" class="btn btn-primary">
+              <span>📹</span> <span data-i18n="startVideoCall">Start Telemedicine Video Call</span>
+            </button>
+          </div>
+
+          <div id="doc-consultations-list"></div>
+        </div>
+
+        <!-- Doctor Section 2: Patient Charts -->
+        <div id="doc-records-tab" class="doc-subpanel hidden">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h2>Patient Clinical Records</h2>
+            <button id="doc-add-patient-btn" class="btn btn-primary btn-small">+ New Patient</button>
+          </div>
+          <div id="doc-patients-grid" class="matchmaker-grid"></div>
+        </div>
+      </section>
+
+      <!-- ================= ADMIN VIEW ================= -->
+      <section id="admin-view" class="hidden">
+        <div style="margin-bottom: 1.5rem;">
+          <h2 data-i18n="adminDashboard">Platform Operations & Verification Console</h2>
+          <p class="muted">Observe platform activities, audit clinical consultations, and verify doctor UIDAI credentials.</p>
+        </div>
+
+        <!-- KPI Statistics -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label" data-i18n="totalPatients">Total Patients</span>
+            <div id="stat-total-patients" class="stat-val">0</div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label" data-i18n="activeDoctors">Active Doctors</span>
+            <div id="stat-total-doctors" class="stat-val">0</div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label" data-i18n="pendingKycCount">Pending KYC</span>
+            <div id="stat-pending-kyc" class="stat-val" style="color: var(--warning);">0</div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label" data-i18n="totalConsultations">Consultations</span>
+            <div id="stat-total-consultations" class="stat-val" style="color: var(--primary);">0</div>
+          </div>
+        </div>
+
+        <nav class="role-nav-tabs">
+          <button class="role-nav-btn active" data-atab="kyc">
+            <span>🛡️</span> <span data-i18n="doctorKycQueue">Doctor UIDAI E-KYC Verification</span>
+          </button>
+          <button class="role-nav-btn" data-atab="audit">
+            <span>📜</span> <span data-i18n="operationsAuditLog">Operations Audit Trail</span>
+          </button>
+          <button class="role-nav-btn" data-atab="consultations">
+            <span>🩺</span> <span>All Consultations & Prescriptions</span>
+          </button>
+        </nav>
+
+        <!-- Admin Tab 1: KYC Queue -->
+        <div id="admin-kyc-tab" class="admin-subpanel">
+          <div style="overflow-x: auto;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Doctor Name</th>
+                  <th>Medical Reg. No.</th>
+                  <th>Council</th>
+                  <th>Specialization</th>
+                  <th>Languages</th>
+                  <th>Masked Aadhaar</th>
+                  <th>Certificates</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-kyc-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Admin Tab 2: Operations Audit Log -->
+        <div id="admin-audit-tab" class="admin-subpanel hidden">
+          <div style="overflow-x: auto;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Actor</th>
+                  <th>Action</th>
+                  <th>Target</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody id="admin-audit-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Admin Tab 3: Consultations Monitor -->
+        <div id="admin-consultations-tab" class="admin-subpanel hidden">
+          <div id="admin-consultations-list"></div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ==================== VIDEO CONSULTATION MODAL ==================== -->
+  <div id="video-modal" class="video-modal-backdrop hidden">
+    <div class="video-modal-content">
+      <div class="video-modal-header">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <span style="font-size: 1.5rem;">📹</span>
+          <div>
+            <h3 id="video-room-title" data-i18n="videoCallModalTitle">Telemedicine Video Consultation</h3>
+            <span id="video-connection-status" style="font-size: 0.8rem; color: var(--success); font-weight: 600;">● Live Connected</span>
+          </div>
+        </div>
+        <button id="close-video-modal-btn" class="btn btn-ghost btn-small">✕</button>
+      </div>
+
+      <div class="video-room-layout">
+        <!-- Main Video Area -->
+        <div class="video-stage">
+          <!-- Call Duration -->
+          <div class="call-timer-pill">
+            <span class="pulse-dot"></span>
+            <span id="call-timer">00:00</span>
+          </div>
+
+          <!-- Remote Video Feed -->
+          <div id="remote-feed-container" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+            <div class="remote-simulation-card">
+              <div class="remote-avatar" id="remote-avatar-icon">👨‍⚕️</div>
+              <h3 id="remote-participant-name" style="color: #ffffff; margin-bottom: 0.25rem;">Dr. Rajesh Sharma</h3>
+              <p style="color: #94a3b8; font-size: 0.85rem;" id="remote-participant-subtitle">General Medicine & Cardiology · Verified Clinician</p>
+              <span class="match-score-badge" style="margin-top: 0.75rem; background: rgba(15,118,110,0.3); border-color: #0d9488; color: #5eead4;">
+                🔒 Secure WebRTC Encrypted Channel
+              </span>
+            </div>
+          </div>
+
+          <!-- Local Self Camera Stream (PIP) -->
+          <div class="local-pip-box">
+            <video id="local-video" autoplay playsinline muted></video>
+            <div id="cam-off-placeholder" class="hidden" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.75rem;">
+              Camera Off
+            </div>
+          </div>
+        </div>
+
+        <!-- In-Call Clinical Notes & Prescription Drawer -->
+        <div class="video-clinical-drawer">
+          <div class="drawer-header">
+            <h3 data-i18n="clinicalNotesDrawer">Clinical Notes & Prescriptions</h3>
+            <p class="muted" style="font-size: 0.78rem;">Doctor records diagnosis, cure plan, and medication details.</p>
+          </div>
+
+          <form id="incall-rx-form" style="display: flex; flex-direction: column; gap: 0.85rem;">
+            <!-- Patient Problem -->
+            <label>
+              <span data-i18n="problemTitle" style="font-size: 0.85rem; font-weight: 700;">Patient Problem / Chief Complaint</span>
+              <textarea id="incall-problem" rows="2" data-i18n-placeholder="problemPlaceholder" placeholder="Describe symptoms, fever, pain duration..."></textarea>
+            </label>
+
+            <!-- Diagnosis & Cure Plan -->
+            <label>
+              <span data-i18n="diagnosisCureTitle" style="font-size: 0.85rem; font-weight: 700;">Diagnosis & Cure / Treatment Plan</span>
+              <textarea id="incall-cure" rows="2" data-i18n-placeholder="diagnosisCurePlaceholder" placeholder="Clinical diagnosis, recovery recommendations, diet, lifestyle cure..."></textarea>
+            </label>
+
+            <!-- Prescribed Medications -->
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                <span data-i18n="prescribeMedications" style="font-size: 0.85rem; font-weight: 700;">Prescribed Medications</span>
+                <button type="button" id="btn-add-medication-row" class="btn btn-ghost btn-small" style="color: var(--primary); font-size: 0.8rem;">+ Add Drug</button>
+              </div>
+              <div id="incall-medications-list">
+                <!-- Drug item template row populated via JS -->
+              </div>
+            </div>
+
+            <label>
+              <span data-i18n="generalAdvice" style="font-size: 0.85rem; font-weight: 700;">General Advice / Precautions</span>
+              <input type="text" id="incall-advice" placeholder="e.g. Warm saline gargles, avoid cold drinks..." />
+            </label>
+
+            <label>
+              <span data-i18n="followUpDate" style="font-size: 0.85rem; font-weight: 700;">Follow-up Date</span>
+              <input type="date" id="incall-followup" />
+            </label>
+
+            <button type="submit" class="btn btn-primary" id="btn-save-rx">
+              💾 <span data-i18n="saveAndIssuePrescription">Save & Issue Prescription</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Video Controls Bar -->
+      <div class="video-controls-bar">
+        <button id="btn-toggle-cam" class="control-btn" title="Turn Camera On/Off">📹</button>
+        <button id="btn-toggle-mic" class="control-btn" title="Mute/Unmute Mic">🎤</button>
+        <button id="btn-end-call" class="control-btn end-call-btn" data-i18n="endCall">🔴 End Consultation</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== UPLOAD MODAL ==================== -->
+  <div id="upload-modal" class="video-modal-backdrop hidden">
+    <div class="video-modal-content" style="max-width: 500px;">
+      <div class="video-modal-header">
+        <h3 data-i18n="uploadDocument">Upload Medical Document</h3>
+        <button id="close-upload-modal-btn" class="btn btn-ghost btn-small">✕</button>
+      </div>
+      <form id="upload-doc-form" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <label>
+          <span>Document Type</span>
+          <select id="up-doc-type">
+            <option value="prescription">Prescription</option>
+            <option value="lab_report">Lab Report</option>
+            <option value="consultation_note">Consultation Note</option>
+            <option value="scan">Scan / Imaging</option>
+            <option value="discharge_summary">Discharge Summary</option>
+          </select>
+        </label>
+        <label>
+          <span>Document Date</span>
+          <input type="date" id="up-doc-date" />
+        </label>
+        <label>
+          <span>Select File (PDF, TXT, PNG, JPG)</span>
+          <input type="file" id="up-doc-file" required accept=".pdf,.png,.jpg,.jpeg,.txt" />
+        </label>
+        <button type="submit" class="btn btn-primary">Upload & Process with OCR</button>
+      </form>
+    </div>
+  <!-- ==================== DOCTOR ADD PATIENT MODAL ==================== -->
+  <div id="add-patient-modal" class="video-modal-backdrop hidden">
+    <div class="video-modal-content" style="max-width: 580px;">
+      <div class="video-modal-header">
+        <h3 data-i18n="addNewPatient">Add New Patient</h3>
+        <button id="close-add-patient-btn" class="btn btn-ghost btn-small">✕</button>
+      </div>
+      <form id="add-patient-form" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <div class="form-row-2">
+          <label>
+            <span data-i18n="mrnLabel">Medical Record Number (MRN)</span>
+            <input type="text" id="add-pat-mrn" required placeholder="MRN-XXXX" />
+          </label>
+          <label>
+            <span data-i18n="fullName">Full Name</span>
+            <input type="text" id="add-pat-name" required placeholder="e.g. Ramesh Gupta" />
+          </label>
+        </div>
+
+        <div class="form-row-2">
+          <label>
+            <span data-i18n="dobLabel">Date of Birth</span>
+            <input type="date" id="add-pat-dob" />
+          </label>
+          <label>
+            <span data-i18n="genderLabel">Gender</span>
+            <select id="add-pat-gender">
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="form-row-2">
+          <label>
+            <span data-i18n="bloodGroupLabel">Blood Group</span>
+            <select id="add-pat-blood">
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+            </select>
+          </label>
+          <label>
+            <span data-i18n="selectLanguage">Preferred Language</span>
+            <select id="add-pat-lang">
+              <option value="English">English</option>
+              <option value="Hindi">हिन्दी (Hindi)</option>
+              <option value="Tamil">தமிழ் (Tamil)</option>
+              <option value="Telugu">తెలుగు (Telugu)</option>
+              <option value="Malayalam">മലയാളം (Malayalam)</option>
+              <option value="Gujarati">ગુજરાતી (Gujarati)</option>
+              <option value="Marathi">मराठी (Marathi)</option>
+              <option value="Punjabi">ਪੰਜਾਬੀ (Punjabi)</option>
+              <option value="Kannada">ಕನ್ನಡ (Kannada)</option>
+              <option value="Assamese">অসমীয়া (Assamese)</option>
+              <option value="Bengali">বাংলা (Bengali)</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="form-row-2">
+          <label>
+            <span data-i18n="email">Email Address</span>
+            <input type="email" id="add-pat-email" placeholder="patient@example.com" />
+          </label>
+          <label>
+            <span data-i18n="phone">Phone Number</span>
+            <input type="tel" id="add-pat-phone" placeholder="+91 98765 43210" />
+          </label>
+        </div>
+
+        <label>
+          <span data-i18n="initialProblem">Initial Health Condition / Reason for Visit</span>
+          <input type="text" id="add-pat-problem" placeholder="e.g. Chest pain, Skin allergy, Knee arthritis, Fever" />
+        </label>
+
+        <label>
+          <span data-i18n="allergiesLabel">Known Allergies</span>
+          <input type="text" id="add-pat-allergies" placeholder="e.g. Penicillin, Peanuts, Sulfa drugs" />
+        </label>
+
+        <label>
+          <span data-i18n="notesLabel">Clinical Notes / History</span>
+          <textarea id="add-pat-notes" rows="3" placeholder="Chief complaints, past medical history, current medications..."></textarea>
+        </label>
+
+        <button type="submit" class="btn btn-primary" data-i18n="savePatient">Save Patient Record</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== DOCTOR SCHEDULE MODAL ==================== -->
+  <div id="doctor-schedule-modal" class="video-modal-backdrop hidden">
+    <div class="video-modal-content" style="max-width: 520px;">
+      <div class="video-modal-header">
+        <h3 data-i18n="availableDays">Practice Availability & Working Hours</h3>
+        <button id="close-schedule-modal-btn" class="btn btn-ghost btn-small">✕</button>
+      </div>
+      <form id="doc-schedule-form" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <label>
+          <span data-i18n="availableDays" style="font-weight: 700;">Working Days</span>
+          <div class="languages-checkbox-grid" style="grid-template-columns: repeat(3, 1fr); margin-top: 0.4rem;">
+            <label class="checkbox-label"><input type="checkbox" name="sched-day" value="Monday" checked /> Monday</label>
+            <label class="checkbox-label"><input type="checkbox" name="sched-day" value="Tuesday" checked /> Tuesday</label>
+            <label class="checkbox-label"><input type="checkbox" name="sched-day" value="Wednesday" checked /> Wednesday</label>
+            <label class="checkbox-label"><input type="checkbox" name="sched-day" value="Thursday" checked /> Thursday</label>
+            <label class="checkbox-label"><input type="checkbox" name="sched-day" value="Friday" checked /> Friday</label>
+            <label class="checkbox-label"><input type="checkbox" name="sched-day" value="Saturday" /> Saturday</label>
+            <label class="checkbox-label"><input type="checkbox" name="sched-day" value="Sunday" /> Sunday</label>
+          </div>
+        </label>
+
+        <div class="form-row-2">
+          <label>
+            <span data-i18n="availableHours" style="font-weight: 700;">Start Time</span>
+            <input type="text" id="sched-start-time" value="09:00 AM" placeholder="09:00 AM" />
+          </label>
+          <label>
+            <span data-i18n="availableHours" style="font-weight: 700;">End Time</span>
+            <input type="text" id="sched-end-time" value="05:00 PM" placeholder="05:00 PM" />
+          </label>
+        </div>
+
+        <button type="submit" class="btn btn-primary" data-i18n="saveAvailability">Save Schedule</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== CONSULTATION REPORT UPLOAD MODAL ==================== -->
+  <div id="consultation-upload-modal" class="video-modal-backdrop hidden">
+    <div class="video-modal-content" style="max-width: 500px;">
+      <div class="video-modal-header">
+        <h3 data-i18n="uploadScanLabBtn">Upload Scan / Lab Report</h3>
+        <button id="close-consultation-upload-btn" class="btn btn-ghost btn-small">✕</button>
+      </div>
+      <form id="consultation-upload-form" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <p id="consult-upload-note" class="notice-banner pending" style="font-size: 0.85rem; padding: 0.75rem; margin: 0;"></p>
+        <label>
+          <span>Report Type</span>
+          <select id="consult-doc-type">
+            <option value="scan">Scan / X-Ray / MRI</option>
+            <option value="lab_report">Pathology / Blood Lab Report</option>
+            <option value="ecg">ECG / Cardiac Report</option>
+            <option value="other">Other Diagnostic Document</option>
+          </select>
+        </label>
+        <label>
+          <span>Select Document File (PDF, PNG, JPG)</span>
+          <input type="file" id="consult-doc-file" required accept=".pdf,.png,.jpg,.jpeg" />
+        </label>
+        <button type="submit" class="btn btn-primary">Upload Document for Doctor Verification</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== AI CLINICAL CHATBOT ==================== -->
+  <div id="ai-chatbot-widget" class="ai-chatbot-container hidden">
+    <!-- Floating Trigger Button -->
+    <button id="ai-fab-btn" class="ai-fab-btn" title="MediSync Clinical AI Assistant">
+      <span class="ai-fab-icon">🤖</span>
+      <span class="ai-fab-text" data-i18n="aiAssistant">MediSync AI</span>
+    </button>
+
+    <!-- Chat Window Modal -->
+    <div id="ai-chat-window" class="ai-chat-window hidden">
+      <div class="ai-chat-header">
+        <div style="display: flex; align-items: center; gap: 0.6rem;">
+          <span style="font-size: 1.4rem;">🤖</span>
+          <div>
+            <h4 data-i18n="aiAssistant" style="font-size: 0.95rem; margin: 0; color: #fff;">MediSync AI Assistant</h4>
+            <span class="ai-status-pulse">● Active Clinical Matchmaker</span>
+          </div>
+        </div>
+        <button id="ai-chat-close-btn" class="btn btn-ghost btn-small" style="color: #fff; padding: 0.2rem 0.5rem; min-width: auto;">✕</button>
+      </div>
+
+      <!-- Quick Suggestion Chips -->
+      <div id="ai-quick-chips" class="ai-quick-chips"></div>
+
+      <!-- Messages Thread -->
+      <div id="ai-chat-messages" class="ai-chat-messages"></div>
+
+      <!-- Chat Input Form -->
+      <form id="ai-chat-form" class="ai-chat-form">
+        <input type="text" id="ai-chat-input" placeholder="Type your symptoms, message, or questions..." autocomplete="off" />
+        <button type="submit" id="ai-chat-send-btn" class="btn btn-primary btn-small" data-i18n="aiSend">Send</button>
+      </form>
+    </div>
+  </div>
+
+</div>
+
+<!-- In-app Floating Toast -->
+<div id="toast" class="toast hidden"></div>
+
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
